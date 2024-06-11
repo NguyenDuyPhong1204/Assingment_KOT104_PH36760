@@ -19,12 +19,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -39,17 +41,34 @@ class WelcomeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+            WelcomeScreen(navController = navController)
             NavHost(navController = navController, startDestination = Screens.Welcome.screens) {
-                composable(Screens.Welcome.screens){
+                composable(Screens.Welcome.screens) {
                     WelcomeScreen(navController = navController)
                 }
 
-                composable(Screens.Login.screens){
+                composable(Screens.Login.screens) {
                     LoginScreen(navController = navController)
                 }
 
-                composable(Screens.Register.screens){
+                composable(Screens.Register.screens) {
                     ResgiterScreen(navController = navController)
+                }
+
+                composable(Screens.Cart.screens) {
+                    ResgiterScreen(navController = navController)
+                }
+
+                composable(Screens.CheckOut.screens) {
+                    ResgiterScreen(navController = navController)
+                }
+
+                composable(Screens.Congrats.screens) {
+                    ResgiterScreen(navController = navController)
+                }
+
+                composable(Screens.MainScreen.screens) {
+                    MyBottomAppBar()
                 }
             }
 
@@ -65,7 +84,8 @@ fun WelcomeScreen(navController: NavController) {
         Image(
             painter = painterResource(id = R.drawable.background),
             contentDescription = "backgroundWelcom",
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
 
         Column(
@@ -141,4 +161,11 @@ fun WelcomeScreen(navController: NavController) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun WelcomeUI() {
+    val navController = rememberNavController()
+    WelcomeScreen(navController = navController)
 }

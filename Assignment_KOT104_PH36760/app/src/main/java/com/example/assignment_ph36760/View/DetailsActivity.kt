@@ -47,6 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.assignment_ph36760.Model.Screens
 import com.example.assignment_ph36760.R
 import com.example.assignment_ph36760.Model.colorProduct
 import com.google.gson.Gson
@@ -75,13 +78,14 @@ class DetailsActivity : ComponentActivity() {
         colorsList = Gson().fromJson(colors, object : TypeToken<List<colorProduct>>() {}.type)
         Log.d("Name", "onCreate: " + name)
         setContent {
-            DetailsScreen()
+            val navController = rememberNavController()
+            DetailsScreen(navController)
         }
     }
 
-    @Preview(showBackground = true)
+//    @Preview(showBackground = true)
     @Composable
-    private fun DetailsScreen() {
+    private fun DetailsScreen(navController: NavController) {
         var selectedColor by remember { mutableStateOf(colorsList.first()) }
         Column(
             modifier = Modifier
@@ -298,7 +302,7 @@ class DetailsActivity : ComponentActivity() {
                             .height(60.dp)
                     ) {
                         IconButton(
-                            onClick = {},
+                            onClick = {navController.navigate(Screens.Cart.screens)},
                             modifier = Modifier
                                 .shadow(1.dp, shape = RoundedCornerShape(8.dp))
                                 .background(Color(0xFFF0F0F0))

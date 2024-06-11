@@ -207,7 +207,7 @@ fun LoginScreen(navController: NavController) {
                     .shadow(elevation = 10.dp, spotColor = Color(0xFF303030)),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF303030)),
-                    onClick = {navController.navigate(Screens.Home.screens)}) {
+                    onClick = {navController.navigate(Screens.MainScreen.screens)}) {
 
                     TextStyle(
                         title = "Log in",
