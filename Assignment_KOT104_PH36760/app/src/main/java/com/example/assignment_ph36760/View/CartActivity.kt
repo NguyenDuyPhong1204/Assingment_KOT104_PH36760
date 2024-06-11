@@ -1,5 +1,6 @@
 package com.example.assignment_ph36760.View
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,30 +19,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,42 +51,52 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.assignment_ph36760.Model.CartModel
+import coil.compose.AsyncImage
+import com.example.assignment_ph36760.Model.Entity.Cart
+import com.example.assignment_ph36760.Model.Entity.Screens
 import com.example.assignment_ph36760.R
-import com.example.assignment_ph36760.Model.Product
-import com.example.assignment_ph36760.Model.ProductType
-import com.example.assignment_ph36760.Model.colorProduct
-import com.google.gson.Gson
+import com.example.assignment_ph36760.Response.ApiResponse
+import com.example.assignment_ph36760.ViewModel.CartViewModel
 import java.text.DecimalFormat
 
 class CartActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
+            val cartViewModel = CartViewModel()
+            val navController = rememberNavController()
+            CartScreen(cartViewModel = cartViewModel, navController)
         }
     }
 }
 
-val listCart = listOf(
-    CartModel("Black Simple Lamp", R.drawable.imageproduct1, 12.00, 1),
-    CartModel("Minimal Stand", R.drawable.imageproduct2, 25.00, 1),
-    CartModel("Coffee Chair", R.drawable.imageproduct3, 20.00, 1),
-    CartModel("Simple Desk", R.drawable.imageproduct4, 50.00, 1)
-)
+//val listCart = listOf(
+//    CartModel("Black Simple Lamp", R.drawable.imageproduct1, 12.00, 1),
+//    CartModel("Minimal Stand", R.drawable.imageproduct2, 25.00, 1),
+//    CartModel("Coffee Chair", R.drawable.imageproduct3, 20.00, 1),
+//    CartModel("Simple Desk", R.drawable.imageproduct4, 50.00, 1)
+//)
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun CartScreen() {
+fun CartScreen(cartViewModel: CartViewModel, navController: NavController) {
+    LaunchedEffect(Unit) {
+        cartViewModel.loadCart()
+    }
     var promocode by remember {
         mutableStateOf("")
     }
-
+    val context = LocalContext.current
+    val cart by cartViewModel.cart.observeAsState(null)
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             Spacer(modifier = Modifier.height(30.dp))
             Row(
                 modifier = Modifier
@@ -126,7 +133,7 @@ fun CartScreen() {
 
             }
 
-            LazyListCart(list = listCart)
+            LazyListCart(list = cart, cartViewModel)
 
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -137,7 +144,7 @@ fun CartScreen() {
                     .width(335.dp)
                     .align(alignment = Alignment.CenterHorizontally),
                 shape = RoundedCornerShape(10.dp),
-                label = { Text(text = "Enter your promo code")},
+                label = { Text(text = "Enter your promo code") },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.White,
                     unfocusedBorderColor = Color.White,
@@ -200,7 +207,11 @@ fun CartScreen() {
                 .align(alignment = Alignment.CenterHorizontally),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF242424)),
                 shape = RoundedCornerShape(8.dp),
-                onClick = {}) {
+                onClick = {
+                    cartViewModel.deleteAll()
+                    val intent = Intent(context, CheckOutActivity::class.java)
+                    context.startActivity(intent)
+                }) {
 
                 TextStyle(
                     title = "Check out",
@@ -224,25 +235,37 @@ fun CartScreen() {
 }
 
 @Composable
-private fun LazyListCart(list: List<CartModel>) {
+private fun LazyListCart(list: ApiResponse<List<Cart>>?, cartViewModel: CartViewModel) {
+    val cartList = list?.data ?: emptyList()
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
+            .height(410.dp)
             .padding(20.dp)
     ) {
-        itemsIndexed(listCart) { index, item ->
+        itemsIndexed(cartList) { index, item ->
             ItemCart(
-                name = item.nameProduct,
-                image = item.imageProduct,
-                price = item.priceProduct,
-                quantity = item.quantityProduct
+                id = item._id ?: "",
+                name = item.productName,
+                image = item.productImage,
+                price = item.productPrice,
+                quantity = item.quantity,
+                cartViewModel = cartViewModel
             )
         }
     }
 }
 
+
 @Composable
-private fun ItemCart(name: String, image: Int, price: Double, quantity: Int) {
+private fun ItemCart(
+    id: String,
+    name: String,
+    image: String,
+    price: Double,
+    quantity: Int,
+    cartViewModel: CartViewModel
+) {
     Spacer(modifier = Modifier.padding(bottom = 20.dp))
     Column(
         modifier = Modifier
@@ -256,8 +279,8 @@ private fun ItemCart(name: String, image: Int, price: Double, quantity: Int) {
                     .size(100.dp)
                     .clip(shape = RoundedCornerShape(10.dp))
             ) {
-                Image(
-                    painter = painterResource(id = image),
+                AsyncImage(
+                    model = image,
                     contentDescription = "image",
                     modifier = Modifier.fillMaxSize()
                 )
@@ -343,7 +366,12 @@ private fun ItemCart(name: String, image: Int, price: Double, quantity: Int) {
             Image(
                 painter = painterResource(id = R.drawable.x),
                 contentDescription = "xoa",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable {
+                        cartViewModel.deleteCart(id)
+                    }
+
             )
 
         }

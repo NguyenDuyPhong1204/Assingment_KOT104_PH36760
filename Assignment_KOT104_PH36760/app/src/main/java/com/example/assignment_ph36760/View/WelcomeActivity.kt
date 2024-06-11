@@ -34,7 +34,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.assignment_ph36760.R
-import com.example.assignment_ph36760.Model.Screens
+import com.example.assignment_ph36760.Model.Entity.Screens
+import com.example.assignment_ph36760.ViewModel.LoginViewModel
+import com.example.assignment_ph36760.ViewModel.RegisterViewModel
 
 class WelcomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,35 +44,6 @@ class WelcomeActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             WelcomeScreen(navController = navController)
-            NavHost(navController = navController, startDestination = Screens.Welcome.screens) {
-                composable(Screens.Welcome.screens) {
-                    WelcomeScreen(navController = navController)
-                }
-
-                composable(Screens.Login.screens) {
-                    LoginScreen(navController = navController)
-                }
-
-                composable(Screens.Register.screens) {
-                    ResgiterScreen(navController = navController)
-                }
-
-                composable(Screens.Cart.screens) {
-                    ResgiterScreen(navController = navController)
-                }
-
-                composable(Screens.CheckOut.screens) {
-                    ResgiterScreen(navController = navController)
-                }
-
-                composable(Screens.Congrats.screens) {
-                    ResgiterScreen(navController = navController)
-                }
-
-                composable(Screens.MainScreen.screens) {
-                    MyBottomAppBar()
-                }
-            }
 
         }
     }

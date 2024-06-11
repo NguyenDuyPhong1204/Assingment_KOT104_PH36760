@@ -43,14 +43,14 @@ class congratsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
+            CongratsScreen()
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun CongratsScreen() {
+fun CongratsScreen() {
 
     Column(modifier = Modifier.fillMaxSize()) {
 

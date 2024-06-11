@@ -1,6 +1,7 @@
 package com.example.assignment_ph36760.View
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -26,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -43,25 +47,44 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.assignment_ph36760.Model.AuthListener
 import com.example.assignment_ph36760.R
-import com.example.assignment_ph36760.Model.Screens
+import com.example.assignment_ph36760.Model.Entity.Screens
+import com.example.assignment_ph36760.ViewModel.LoginViewModel
 
-class LoginActivity : ComponentActivity() {
+class LoginActivity : ComponentActivity(), AuthListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-//
-            LoginScreen(navController = navController)
+            val loginViewModel = LoginViewModel()
+            val context = LocalContext.current
+            LoginScreen(navController = navController, loginViewModel)
         }
+    }
+
+    override fun onStarted() {
+        Toast.makeText(this, "12345", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onSuccess(loginResponse: LiveData<String>) {
+       loginResponse.observe(this, Observer {
+           Toast.makeText(this, "$loginResponse", Toast.LENGTH_SHORT).show()
+       })
+    }
+
+    override fun onFailure(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel) {
 
     var email by remember {
         mutableStateOf("")
@@ -70,6 +93,22 @@ fun LoginScreen(navController: NavController) {
     var password by remember {
         mutableStateOf("")
     }
+
+    val context = LocalContext.current
+    val loginError by loginViewModel.loginError.collectAsState()
+    val loginResponse by loginViewModel.loginResponse.collectAsState(null)
+
+    LaunchedEffect(loginResponse) {
+        loginResponse?.let {
+            if (it.isSuccessful) {
+                Toast.makeText(context, "Đăng nhập thành công.", Toast.LENGTH_SHORT).show()
+                navController.navigate(Screens.MainScreen.screens)
+            } else {
+                Toast.makeText(context, "Email hoặc mật khẩu không đúng.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -147,7 +186,9 @@ fun LoginScreen(navController: NavController) {
                     fontWeight = FontWeight(400),
                     color = Color(0xFF909090),
                     textAlign = null,
-                    modifier = Modifier.height(25.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .height(25.dp)
+                        .fillMaxWidth(),
                 )
                 TextField(
                     value = email,
@@ -157,7 +198,7 @@ fun LoginScreen(navController: NavController) {
                         focusedIndicatorColor = Color(0xFFE0E0E0),
                         unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    modifier = Modifier.height(40.dp)
+
                 )
 
 
@@ -168,17 +209,18 @@ fun LoginScreen(navController: NavController) {
                     fontWeight = FontWeight(400),
                     color = Color(0xFF909090),
                     textAlign = null,
-                    modifier = Modifier.height(25.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .height(25.dp)
+                        .fillMaxWidth()
                 )
                 TextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = password,
+                    onValueChange = { password = it },
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.White,
                         focusedIndicatorColor = Color(0xFFE0E0E0),
                         unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    modifier = Modifier.height(40.dp),
                     visualTransformation = PasswordVisualTransformation(),
                     trailingIcon = {
                         Image(
@@ -196,10 +238,12 @@ fun LoginScreen(navController: NavController) {
                     fontWeight = FontWeight(600),
                     color = Color(0xFF303030),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.height(25.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .height(25.dp)
+                        .fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(25.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Button(modifier = Modifier
                     .width(285.dp)
                     .height(50.dp)
@@ -207,7 +251,9 @@ fun LoginScreen(navController: NavController) {
                     .shadow(elevation = 10.dp, spotColor = Color(0xFF303030)),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF303030)),
-                    onClick = {navController.navigate(Screens.MainScreen.screens)}) {
+                    onClick = {
+                        loginViewModel.login(email, password)
+                    }) {
 
                     TextStyle(
                         title = "Log in",
@@ -215,19 +261,23 @@ fun LoginScreen(navController: NavController) {
                         fontWeight = FontWeight(600),
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.height(25.dp).fillMaxWidth()
+                        modifier = Modifier
+                            .height(25.dp)
+                            .fillMaxWidth()
                     )
 
                 }
 
-                Spacer(modifier = Modifier.height(25.dp))
+                Spacer(modifier = Modifier.height(15.dp))
                 TextStyle(
                     title = "SIGN UP",
                     fontSize = 20.sp,
                     fontWeight = FontWeight(600),
                     color = Color(0xFF303030),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.height(25.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .height(25.dp)
+                        .fillMaxWidth()
                         .clickable {
                             navController.navigate(Screens.Register.screens)
                         }

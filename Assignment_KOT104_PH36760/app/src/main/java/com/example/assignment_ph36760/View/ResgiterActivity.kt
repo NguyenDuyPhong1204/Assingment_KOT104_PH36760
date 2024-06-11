@@ -1,6 +1,7 @@
 package com.example.assignment_ph36760.View
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -27,6 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -47,21 +51,23 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.assignment_ph36760.R
-import com.example.assignment_ph36760.Model.Screens
+import com.example.assignment_ph36760.Model.Entity.Screens
+import com.example.assignment_ph36760.ViewModel.RegisterViewModel
 
 class ResgiterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            ResgiterScreen(navController)
+            val registerViewModel = RegisterViewModel()
+            ResgiterScreen(navController, registerViewModel)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResgiterScreen(navController: NavController) {
+fun ResgiterScreen(navController: NavController, registerViewModel: RegisterViewModel) {
 
     var name by remember {
         mutableStateOf("")
@@ -78,6 +84,20 @@ fun ResgiterScreen(navController: NavController) {
     var confirmPassword by remember {
         mutableStateOf("")
     }
+    val context = LocalContext.current
+    val registerError by registerViewModel.registerError.collectAsState()
+    val registerResponse by registerViewModel.registerResponse.collectAsState(null)
+
+    LaunchedEffect(registerResponse) {
+        registerResponse?.let {
+            if (it.isSuccessful) {
+                Toast.makeText(context, "Đăng kí thành công, vui lòng kiểm tra email để xác nhận tài khoản.", Toast.LENGTH_SHORT).show()
+                navController.navigate(Screens.Login.screens)
+            } else {
+                Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -85,7 +105,7 @@ fun ResgiterScreen(navController: NavController) {
                 .fillMaxSize()
                 .background(color = Color.White)
         ) {
-            Spacer(modifier = Modifier.height(97.dp)) // Chỉ sử dụng height cho khoảng cách phía trên
+            Spacer(modifier = Modifier.height(27.dp)) // Chỉ sử dụng height cho khoảng cách phía trên
             Row(
                 verticalAlignment = Alignment.CenterVertically, // Canh giữa theo chiều dọc
                 modifier = Modifier.fillMaxWidth(),
@@ -97,7 +117,7 @@ fun ResgiterScreen(navController: NavController) {
                     modifier = Modifier.width(105.dp) // Chiều dài của Divider
                 )
 
-                Spacer(modifier = Modifier.width(20.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Image(
                     painter = painterResource(id = R.drawable.group),
                     contentDescription = "Image",
@@ -114,7 +134,7 @@ fun ResgiterScreen(navController: NavController) {
 
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Text(
                 text = "WELCOME",
                 fontSize = 24.sp,
@@ -127,11 +147,11 @@ fun ResgiterScreen(navController: NavController) {
                 fontWeight = FontWeight(700)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Column(
                 modifier = Modifier
                     .width(345.dp)
-                    .height(550.dp)
+                    .height(620.dp)
                     .align(Alignment.CenterHorizontally)
                     .shadow(elevation = 3.dp, spotColor = Color(0xFF8A959E))
                     .padding(40.dp)
@@ -154,12 +174,12 @@ fun ResgiterScreen(navController: NavController) {
                         focusedIndicatorColor = Color(0xFFE0E0E0),
                         unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    modifier = Modifier.height(40.dp)
+
                 )
 
 
 
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 TextStyleResgiter(
                     title = "Email",
                     fontSize = 17.sp,
@@ -176,7 +196,7 @@ fun ResgiterScreen(navController: NavController) {
                         focusedIndicatorColor = Color(0xFFE0E0E0),
                         unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    modifier = Modifier.height(40.dp)
+
                 )
 
 
@@ -191,14 +211,14 @@ fun ResgiterScreen(navController: NavController) {
                     modifier = Modifier.height(25.dp)
                 )
                 TextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = password,
+                    onValueChange = { password = it },
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.White,
                         focusedIndicatorColor = Color(0xFFE0E0E0),
                         unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    modifier = Modifier.height(40.dp),
+
                     visualTransformation = PasswordVisualTransformation(),
                     trailingIcon = {
                         Image(
@@ -226,7 +246,7 @@ fun ResgiterScreen(navController: NavController) {
                         focusedIndicatorColor = Color(0xFFE0E0E0),
                         unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    modifier = Modifier.height(40.dp),
+
                     visualTransformation = PasswordVisualTransformation(),
                     trailingIcon = {
                         Image(
@@ -247,7 +267,7 @@ fun ResgiterScreen(navController: NavController) {
                     .shadow(elevation = 10.dp, spotColor = Color(0xFF303030)),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF303030)),
-                    onClick = {}) {
+                    onClick = {registerViewModel.register(email, password, name, confirmPassword)}) {
 
                     TextStyleResgiter(
                         title = "SIGN UP",
